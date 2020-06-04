@@ -30,8 +30,14 @@ const CreatePoint = () => {
   const [cities, setCities] = useState<string[]>([])
   const [selectedUf, setSelectedUf] = useState('0')
   const [selectedCity, setSelectedCity] = useState('0')
+  const [selectedItems, setSelectedItems] = useState<number[]>([])
   const [initialPos, setInitialPos] = useState<[number, number]>([0, 0])
   const [selectedPos, setSelectedPos] = useState<[number, number]>([0, 0])
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    whatsapp: ''
+  })
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(pos => {
@@ -81,6 +87,23 @@ const CreatePoint = () => {
 
   const handleMapClick = (e: LeafletMouseEvent) => {
     setSelectedPos([e.latlng.lat, e.latlng.lng])
+  }
+
+  const handleInputChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target
+
+    setFormData({ ...formData, [name]: value })
+  }
+
+  const handleSelectItem = (itemId: number) => {
+    const alreadySelected = selectedItems.findIndex(item => item === itemId)
+
+    if (alreadySelected >= 0) {
+      const filteredItems = selectedItems.filter(item => item !== itemId)
+      return setSelectedItems(filteredItems)
+    }
+
+    setSelectedItems([...selectedItems, itemId])
   }
 
   return (
@@ -189,7 +212,11 @@ const CreatePoint = () => {
 
           <ul className="items-grid">
             {items.map(item => (
-              <li key={item.id}>
+              <li
+                key={item.id}
+                onClick={() => handleSelectItem(item.id)}
+                className={selectedItems.includes(item.id) ? 'selected' : ''}
+              >
                 <img src={item.image_url} alt={item.title}/>
                 <span>{item.title}</span>
               </li>
