@@ -1,5 +1,5 @@
-import React, { useEffect, useState, ChangeEvent } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useEffect, useState, ChangeEvent, FormEvent } from 'react'
+import { Link, useHistory } from 'react-router-dom'
 import { FiArrowLeft } from 'react-icons/fi'
 import { Map, TileLayer, Marker } from 'react-leaflet'
 import axios from 'axios'
@@ -25,6 +25,7 @@ interface IBGECityResponse {
 }
 
 const CreatePoint = () => {
+  const history = useHistory()
   const [items, setItems] = useState<Item[]>([])
   const [ufs, setUfs] = useState<string[]>([])
   const [cities, setCities] = useState<string[]>([])
@@ -89,7 +90,7 @@ const CreatePoint = () => {
     setSelectedPos([e.latlng.lat, e.latlng.lng])
   }
 
-  const handleInputChange = (e: ChangeEvent<HTMLSelectElement>) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
 
     setFormData({ ...formData, [name]: value })
@@ -106,6 +107,29 @@ const CreatePoint = () => {
     setSelectedItems([...selectedItems, itemId])
   }
 
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault()
+
+    const { name, email, whatsapp } = formData
+    const [latitude, longitude] = selectedPos
+
+    const data = {
+      name,
+      email,
+      whatsapp,
+      uf: selectedUf,
+      city: selectedCity,
+      latitude,
+      longitude,
+      items: selectedItems
+    }
+
+    api.post('/points', data)
+
+    alert('Ponto de coleta criado!')
+    history.push('/')
+  }
+
   return (
     <div id="page-create-point">
       <header>
@@ -117,7 +141,7 @@ const CreatePoint = () => {
         </Link>
       </header>
 
-      <form>
+      <form onSubmit={handleSubmit}>
         <h1>Cadastro de <br /> ponto de coleta</h1>
 
         <fieldset>
@@ -131,6 +155,7 @@ const CreatePoint = () => {
               type="text"
               name="name"
               id="name"
+              onChange={handleInputChange}
             />
           </div>
 
@@ -141,6 +166,7 @@ const CreatePoint = () => {
                 type="email"
                 name="email"
                 id="email"
+                onChange={handleInputChange}
               />
             </div>
             <div className="field">
@@ -149,6 +175,7 @@ const CreatePoint = () => {
                 type="text"
                 name="whatsapp"
                 id="whatsapp"
+                onChange={handleInputChange}
               />
             </div>
           </div>
