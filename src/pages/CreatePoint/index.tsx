@@ -33,6 +33,7 @@ const CreatePoint = () => {
   const [selectedUf, setSelectedUf] = useState('0')
   const [selectedCity, setSelectedCity] = useState('0')
   const [selectedItems, setSelectedItems] = useState<number[]>([])
+  const [selectedFile, setSelectedFile] = useState<File>()
   const [initialPos, setInitialPos] = useState<[number, number]>([0, 0])
   const [selectedPos, setSelectedPos] = useState<[number, number]>([0, 0])
   const [formData, setFormData] = useState({
@@ -57,7 +58,7 @@ const CreatePoint = () => {
     const url = 'https://servicodados.ibge.gov.br/api/v1/localidades/estados'
     axios.get<IBGEUFResponse[]>(url).then(response => {
       const ufAbbrevs = response.data.map(uf => uf.sigla)
-      setUfs(ufAbbrevs)
+      setUfs(ufAbbrevs.sort())
     })
   }, [])
 
@@ -114,16 +115,17 @@ const CreatePoint = () => {
     const { name, email, whatsapp } = formData
     const [latitude, longitude] = selectedPos
 
-    const data = {
-      name,
-      email,
-      whatsapp,
-      uf: selectedUf,
-      city: selectedCity,
-      latitude,
-      longitude,
-      items: selectedItems
-    }
+    const data = new FormData()
+
+    data.append('name', name)
+    data.append('email', email)
+    data.append('whatsapp', whatsapp)
+    data.append('uf', selectedUf)
+    data.append('city', selectedCity)
+    data.append('latitude', String(latitude))
+    data.append('longitude', String(longitude))
+    data.append('items', selectedItems.join(','))
+    selectedFile && data.append('image', selectedFile)
 
     api.post('/points', data)
 
@@ -145,7 +147,7 @@ const CreatePoint = () => {
       <form onSubmit={handleSubmit}>
         <h1>Cadastro de <br /> ponto de coleta</h1>
 
-        <Dropzone />
+        <Dropzone onFileUploaded={setSelectedFile} />
 
         <fieldset>
           <legend>
